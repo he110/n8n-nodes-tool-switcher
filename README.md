@@ -2,7 +2,7 @@
 
 **Tool Switcher** is an n8n community node that dynamically selects which AI tools to provide to an Agent based on configurable rules. Unlike a simple switch, it evaluates **all** rules and returns **all** tools whose conditions are satisfied — giving your AI Agent exactly the right set of capabilities for each situation.
 
-![Tool Switcher in workflow](docs/screenshot.png)
+![Tool Switcher in workflow](https://raw.githubusercontent.com/he110/n8n-nodes-tool-switcher/main/docs/screenshot.png)
 
 ---
 

@@ -1,3 +1,4 @@
+import { StructuredToolkit } from 'n8n-core';
 import {
 	NodeConnectionTypes,
 	type INodeType,
@@ -9,6 +10,8 @@ import {
 } from 'n8n-workflow';
 
 import { numberInputsProperty, configuredInputs } from './helpers';
+
+type ToolkitInput = ConstructorParameters<typeof StructuredToolkit>[0];
 
 interface ToolSelectionRule {
 	toolIndex: number;
@@ -176,7 +179,7 @@ export class ToolSwitcher implements INodeType {
 		}
 
 		return {
-			response: selectedTools,
+			response: new StructuredToolkit(selectedTools as ToolkitInput),
 		};
 	}
 }
