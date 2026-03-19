@@ -1,0 +1,41 @@
+{
+	"name": "n8n-nodes-tool-switcher",
+	"version": "0.1.0",
+	"description": "n8n community node that dynamically selects which AI tools to provide to an Agent based on configurable rules",
+	"license": "MIT",
+	"homepage": "https://github.com/he110/n8n-nodes-tool-switcher",
+	"keywords": [
+		"n8n-community-node-package"
+	],
+	"author": {
+		"name": "Elijah Zobenko",
+		"email": "ilya@zobenko.ru"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/he110/n8n-nodes-tool-switcher.git"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"nodes": [
+			"dist/nodes/ToolSwitcher/ToolSwitcher.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
