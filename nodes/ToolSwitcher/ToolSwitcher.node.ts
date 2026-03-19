@@ -37,8 +37,7 @@ export class ToolSwitcher implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Tool Switcher',
 		name: 'toolSwitcher',
-		icon: 'fa:random',
-		iconColor: 'blue',
+		icon: 'file:tool-switcher.svg',
 		defaults: {
 			name: 'Tool Switcher',
 		},

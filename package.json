@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-tool-switcher",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n community node that dynamically selects which AI tools to provide to an Agent based on configurable rules",
 	"license": "MIT",
 	"homepage": "https://github.com/he110/n8n-nodes-tool-switcher",
@@ -13,7 +13,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/he110/n8n-nodes-tool-switcher.git"
+		"url": "git+https://github.com/he110/n8n-nodes-tool-switcher.git"
 	},
 	"scripts": {
 		"build": "n8n-node build",
@@ -23,7 +23,8 @@
 		"lint:fix": "n8n-node lint --fix"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"icons"
 	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
