@@ -10,16 +10,11 @@ import {
 
 import { numberInputsProperty, configuredInputs } from './helpers';
 
-function wrapToolsResponse(selectedTools: unknown[]): unknown {
-	try {
-		const { StructuredToolkit } = require('n8n-core') as {
-			StructuredToolkit?: new (tools: unknown[]) => unknown;
-		};
-		if (typeof StructuredToolkit === 'function') {
-			return new StructuredToolkit(selectedTools);
-		}
-	} catch {}
-	return selectedTools;
+interface LangChainTool {
+	name: string;
+	description: string;
+	schema: unknown;
+	invoke(input: unknown): Promise<unknown>;
 }
 
 interface ToolSelectionRule {
@@ -43,6 +38,67 @@ interface ToolSelectionRule {
 		}>;
 		combinator: 'and' | 'or';
 	};
+}
+
+/**
+ * Wraps multiple selected tools into a single DynamicStructuredTool.
+ *
+ * supplyData can only return ONE response, and older n8n versions
+ * (n8n-core < 2.x) don't support StructuredToolkit to unwrap arrays.
+ * This function creates a single meta-tool that routes calls to the
+ * correct sub-tool based on the "tool" parameter.
+ *
+ * Newer n8n with StructuredToolkit: wraps tools in a toolkit (agent sees N tools).
+ * Older n8n without StructuredToolkit: creates a router tool (agent sees 1 tool).
+ */
+function wrapToolsResponse(selectedTools: LangChainTool[], nodeName: string): unknown {
+	// Try StructuredToolkit first (newer n8n — agent sees individual tools)
+	try {
+		const core = require('n8n-core') as Record<string, unknown>;
+		if (typeof core.StructuredToolkit === 'function') {
+			const Toolkit = core.StructuredToolkit as new (tools: unknown[]) => unknown;
+			return new Toolkit(selectedTools);
+		}
+	} catch {}
+
+	// Single tool — return directly (works on all n8n versions)
+	if (selectedTools.length === 1) {
+		return selectedTools[0];
+	}
+
+	// Multiple tools on older n8n — create a router DynamicStructuredTool
+	const { DynamicStructuredTool } = require('@langchain/core/tools') as {
+		DynamicStructuredTool: new (config: {
+			name: string;
+			description: string;
+			schema: unknown;
+			func: (input: Record<string, unknown>) => Promise<string>;
+		}) => unknown;
+	};
+	const { z } = require('zod') as { z: typeof import('zod').z };
+
+	const toolNames = selectedTools.map((t) => t.name);
+	const toolDescriptions = selectedTools
+		.map((t) => `- "${t.name}": ${t.description}`)
+		.join('\n');
+
+	return new DynamicStructuredTool({
+		name: nodeName,
+		description:
+			`Routes to one of the available tools. You MUST pick the right tool by name.\n\nAvailable tools:\n${toolDescriptions}`,
+		schema: z.object({
+			tool: z.enum(toolNames as [string, ...string[]]).describe('Name of the tool to call'),
+			tool_input: z.record(z.unknown()).describe('Input parameters for the selected tool'),
+		}),
+		func: async (input: Record<string, unknown>) => {
+			const target = selectedTools.find((t) => t.name === input.tool);
+			if (!target) {
+				return `Error: tool "${String(input.tool)}" not found. Available: ${toolNames.join(', ')}`;
+			}
+			const result = await target.invoke(input.tool_input);
+			return typeof result === 'string' ? result : JSON.stringify(result);
+		},
+	});
 }
 
 export class ToolSwitcher implements INodeType {
@@ -187,8 +243,9 @@ export class ToolSwitcher implements INodeType {
 			}
 		}
 
+		const nodeName = this.getNode().name.replace(/\s+/g, '_').toLowerCase();
 		return {
-			response: wrapToolsResponse(selectedTools),
+			response: wrapToolsResponse(selectedTools as LangChainTool[], nodeName),
 		};
 	}
 }
