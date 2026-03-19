@@ -1,4 +1,3 @@
-import { StructuredToolkit } from 'n8n-core';
 import {
 	NodeConnectionTypes,
 	type INodeType,
@@ -11,7 +10,17 @@ import {
 
 import { numberInputsProperty, configuredInputs } from './helpers';
 
-type ToolkitInput = ConstructorParameters<typeof StructuredToolkit>[0];
+function wrapToolsResponse(selectedTools: unknown[]): unknown {
+	try {
+		const { StructuredToolkit } = require('n8n-core') as {
+			StructuredToolkit?: new (tools: unknown[]) => unknown;
+		};
+		if (typeof StructuredToolkit === 'function') {
+			return new StructuredToolkit(selectedTools);
+		}
+	} catch {}
+	return selectedTools;
+}
 
 interface ToolSelectionRule {
 	toolIndex: number;
@@ -179,7 +188,7 @@ export class ToolSwitcher implements INodeType {
 		}
 
 		return {
-			response: new StructuredToolkit(selectedTools as ToolkitInput),
+			response: wrapToolsResponse(selectedTools),
 		};
 	}
 }
